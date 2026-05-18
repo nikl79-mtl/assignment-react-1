@@ -1,28 +1,24 @@
-import { useState } from "react";
-
-const getRandomStatus = () => {
-    const statuses = ["GREEN", "ORANGE", "RED"];
-    return statuses[Math.floor(Math.random() * statuses.length)];
-};
+import { useEffect, useState } from "react";
 
 const LiveHeader = () => {
-    const [status] = useState(getRandomStatus());
+    const [latestExecutionDate, setLatestExecutionDate] = useState<string>("");
 
-    const getCurrentDate = () => new Date().toLocaleDateString("en-GB");
-
-    const getStatusColor = (status: string) => {
-        if (status === "GREEN") return "text-green-500";
-        if (status === "ORANGE") return "text-orange-500";
-        if (status === "RED") return "text-red-500";
-        return "";
-    };
+    useEffect(() => {
+        fetch("/data.csv")
+            .then((res) => res.text())
+            .then((text) => {
+                const lines = text.trim().split("\n").slice(1);
+                const sorted = lines.sort((a, b) => Number(b.split(",")[0]) - Number(a.split(",")[0]));
+                const date = sorted[0].split(",")[1];
+                setLatestExecutionDate(date);
+            });
+    }, []);
 
     return (
         <h1 className="text-cf-dark-gray text-4xl font bold text-center">
-            Test status on {getCurrentDate()} IS:{" "}
-            <span className={getStatusColor(status)}>{status}</span>
+            Last execution was on: {latestExecutionDate}
         </h1>
-    )
-}
+    );
+};
 
-export default LiveHeader
+export default LiveHeader;
